@@ -1,0 +1,155 @@
+//------------------------------- DATA SELECTION & PREPROCESSING --------------------------//
+
+print(ui.Label('Economic Activity and Covid-19', {whiteSpace: 'pre'}));
+var dataset = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG')
+                  .filter(ee.Filter.date('2019-01-01', '2020-05-31')).filterBounds(geometry);
+var nighttime = dataset.select('avg_rad');
+var nighttimeVis = {min: 0.0, max: 60.0};
+Map.addLayer(nighttime, nighttimeVis, 'Nighttime');
+var temporalFiltered = dataset.filterDate('2019-01-01', '2020-05-31');
+print('temporalFiltered', temporalFiltered);
+
+//------------------------------- DATA PROCESSING (INCOME ZONES) --------------------------//
+var image1 = ee.Image('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG/20200101');
+var lights1 = image1.select('avg_rad');
+var zones = lights1.gt(30).add(lights1.gt(55)).add(lights1.gt(62));
+zones = zones.updateMask(zones.neq(0));
+
+Map.addLayer(zones, {min: 1, max: 3, palette: ['0000FF', '00FF00', 'FF0000']}, 'January');
+
+//------------------------------- MONTHS AS LAYER --------------------------//
+
+var image2 = ee.Image('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG/20191201');
+var lights2 = image2.select('avg_rad');
+var zones = lights2.gt(30).add(lights2.gt(55)).add(lights2.gt(62));
+zones = zones.updateMask(zones.neq(0));
+
+Map.addLayer(zones, {min: 1, max: 3, palette: ['0000FF', '00FF00', 'FF0000']}, 'December');
+////
+
+var image3 = ee.Image('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG/20191101');
+var lights3 = image3.select('avg_rad');
+var zones = lights3.gt(30).add(lights3.gt(55)).add(lights3.gt(62));
+zones = zones.updateMask(zones.neq(0));
+
+Map.addLayer(zones, {min: 1, max: 3, palette: ['0000FF', '00FF00', 'FF0000']}, 'November');
+/////
+
+var image4 = ee.Image('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG/20191001');
+var lights4 = image4.select('avg_rad');
+var zones = lights4.gt(30).add(lights4.gt(55)).add(lights4.gt(62));
+zones = zones.updateMask(zones.neq(0));
+
+Map.addLayer(zones, {min: 1, max: 3, palette: ['0000FF', '00FF00', 'FF0000']}, 'October');
+////
+
+var image5 = ee.Image('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG/20190901');
+var lights5 = image5.select('avg_rad');
+var zones = lights5.gt(30).add(lights5.gt(55)).add(lights5.gt(62));
+zones = zones.updateMask(zones.neq(0));
+
+Map.addLayer(zones, {min: 1, max: 3, palette: ['0000FF', '00FF00', 'FF0000']}, 'September');
+//------------------------------- FIRST AFFECTED CITIES BY COVID-19 --------------------------//
+//var places = {
+  //MountainView: [-122.0849, 37.3887],
+  //Pekin: [116.4056, 39.9097],
+  //Zurich: [8.536, 47.376],
+  //Wuhan:[114.27, 30.58],
+  //Bangkok:[100.5166,13.75],
+  //Kanagawa:[139.58,35.32],
+  //Daegu:[128.607,35.8668],
+  //Seattle:[-122.3244,47.6211],
+  //New_York:[-73.9662, 40.7834],
+  //Hong_Kong:[114.185,22.305]
+//};
+
+//var select = ui.Select({
+  //items: Object.keys(places),
+  //onChange: function(key) {
+    //Map.setCenter(places[key][0], places[key][1]);
+ // }
+//});
+
+// Set a place holder.
+//select.setPlaceholder('Choose a location...');
+
+//print(select);
+
+
+//------------------------------- LEGEND --------------------------//
+var titleTextVis = {
+  'margin':'0px 0px 15px 0px',
+  'fontSize': '18px', 
+  'font-weight':'', 
+  'color': '3333ff'
+  };
+var legend = ui.Panel({
+  style: {
+    position: 'bottom-right',
+    padding: '8px 15px',
+  }
+});
+ 
+// Create legend title
+var legendTitle = ui.Label('Legend',titleTextVis);
+ 
+// Add the title to the panel
+legend.add(legendTitle);
+ 
+// Creates and styles 1 row of the legend.
+var makeRow = function(color, name) {
+ 
+      // Create the label that is actually the colored box.
+      var colorBox = ui.Label({
+        style: {
+          backgroundColor: color,
+          // Use padding to give the box height and width.
+          padding: '8px',
+          margin: '0 0 4px 0'
+        }
+      });
+ 
+      // Create the label filled with the description text.
+      var description = ui.Label({
+        value: name,
+        style: {margin: '0 0 4px 6px'}
+      });
+ 
+      // return the panel
+      return ui.Panel({
+        widgets: [colorBox, description],
+        layout: ui.Panel.Layout.Flow('horizontal')
+      });
+};
+ 
+//  Palette with the colors
+var palette =['0000FF', '00FF00', 'FF0000'];
+ 
+// name of the legend
+var names = ['Low Income','Middle Income','High Income'];
+ 
+// Add color and and names
+for (var i = 0; i < 3; i++) {
+  legend.add(makeRow(palette[i], names[i]));
+  }  
+Map.add(legend); 
+
+var slider = ui.Slider({
+value: 'opacity',
+style: {
+fontWeight: 'bold',
+fontSize: '15px',
+margin: '10px 0 0 0',
+padding: '0'
+}
+});
+legend.add(slider);
+
+
+slider.setValue(0.9);  // Set a default value.
+slider.onChange(function(value) {
+  Map.layers().get(0).setOpacity(value);
+});
+
+Map.addLayer(ee.Image(255), {palette: 'blue'});
+Map.add(legend);
