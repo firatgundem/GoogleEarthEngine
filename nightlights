@@ -1,3 +1,9 @@
+//------------------------------- The APP's URL--------------------------//
+
+
+https://fad_bet.users.earthengine.app/view/lights-and-covid-19
+
+
 //------------------------------- DATA SELECTION & PREPROCESSING --------------------------//
 
 print(ui.Label('Economic Activity and Covid-19', {whiteSpace: 'pre'}));
